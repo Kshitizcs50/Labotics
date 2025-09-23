@@ -23,8 +23,8 @@ export default function Features() {
 
         {/* Illustration */}
         <div className="flex-shrink-0">
-          <Image
-            src="/feature-search.png" // place your illustration in /public
+          <img
+            src="../../feature.png" // place your illustration in /public
             alt="Search illustration"
             width={250}
             height={250}
