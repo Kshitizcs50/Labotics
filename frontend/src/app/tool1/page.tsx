@@ -15,7 +15,7 @@ const labs: Lab[] = [
   { id: 1, name: "Health First Diagnostics", location: "Delhi", price: 1200, tests: ["Blood", "Sugar", "X-Ray"] },
   { id: 2, name: "City Care", location: "Mumbai", price: 800, tests: ["Blood", "Thyroid"] },
   { id: 3, name: "Metro Pathology", location: "Bangalore", price: 1500, tests: ["MRI", "CT Scan", "Blood"] },
-  { id: 4, name: "Wellnss Labs", location: "Chennai", price: 1000, tests: ["Blood", "Lipid", "Diabetes"] },
+  { id: 4, name: "Well Labs", location: "Chennai", price: 1000, tests: ["Blood", "Lipid", "Diabetes"] },
 ];
 
 export default function LabsPage() {
