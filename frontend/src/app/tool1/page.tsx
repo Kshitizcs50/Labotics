@@ -14,7 +14,7 @@ type Lab = {
 const labs: Lab[] = [
   { id: 1, name: "Health First Diagnostics", location: "Delhi", price: 1200, tests: ["Blood", "Sugar", "X-Ray"] },
   { id: 2, name: "City Care", location: "Mumbai", price: 800, tests: ["Blood", "Thyroid"] },
-  { id: 3, name: "Metro Path", location: "Bangalore", price: 1500, tests: ["MRI", "CT Scan", "Blood"] },
+  { id: 3, name: "Metro Pat", location: "Bangalore", price: 1500, tests: ["MRI", "CT Scan", "Blood"] },
   { id: 4, name: "Wellnes Labs", location: "Chennai", price: 1000, tests: ["Blood", "Lipid", "Diabetes"] },
 ];
 
