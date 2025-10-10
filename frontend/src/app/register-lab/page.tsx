@@ -145,7 +145,16 @@ export default function LabAdminPanel(): JSX.Element {
   if (view === ViewState.SEARCH) {
     const locationOptions = Array.from(new Set(labs.map((l) => l.locationId).filter(Boolean)));
     return (
-      <div className="min-h-screen bg-slate-900 text-white p-8 flex flex-col items-center">
+      <div className="min-h-screen bg-slate-900 text-white mt-27 p-8 flex flex-col items-center">
+        {/* 🎉 Join Labotics Button at top-center */}
+        <Button
+          onClick={() => alert("Send your application to join Labotics. We will review your lab!")}
+          className="mb-6 px-6 py-3 font-bold text-white rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500
+                     transform transition duration-500 hover:scale-105 hover:shadow-lg animate-pulse"
+        >
+          Join Our Labotics
+        </Button>
+
         <h1 className="text-3xl font-bold mb-6 text-teal-400">Find Your Lab</h1>
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <Input
@@ -172,7 +181,7 @@ export default function LabAdminPanel(): JSX.Element {
             filtered.map((lab) => (
               <Card
                 key={lab.id}
-                className="bg-slate-800 border border-slate-700 hover:bg-slate-700 cursor-pointer"
+                className="bg-slate-800 border border-slate-700 hover:bg-slate-700 cursor-pointer transform transition duration-300 hover:scale-105"
                 onClick={() => {
                   setSelectedLab(lab);
                   setView(ViewState.DASHBOARD);
