@@ -20,6 +20,16 @@ import {
   Cell,
 } from "recharts";
 
+type Test = { name: string; price: number; status?: "completed" | "pending"; reportUrl?: string; paymentDone?: boolean };
+
+type Customer = {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  tests: Test[];
+};
+
 type Lab = {
   id: string;
   name: string;
@@ -27,13 +37,13 @@ type Lab = {
   address?: string;
   email?: string;
   phone?: string;
-  tests?: { name: string; price: number }[];
+  tests?: Test[];
   combos?: { tests: string[]; price: number }[];
   createdAt: string;
   revenue?: number;
   completedTests?: number;
   pendingTests?: number;
-  customers?: number;
+  customers?: Customer[];
   monthlyStats?: { month: string; revenue: number; tests: number }[];
 };
 
@@ -44,7 +54,7 @@ enum ViewState {
 
 const uid = (prefix = "id") => `${prefix}_${Math.random().toString(36).slice(2, 9)}`;
 const nowISO = () => new Date().toISOString();
-const LS_LABS = "lab_admin:labs:v6";
+const LS_LABS = "lab_admin:labs:v8";
 
 const loadFromLS = <T,>(key: string, fallback: T): T => {
   try {
@@ -72,42 +82,36 @@ const seedIfEmpty = () => {
           { name: "Lipid Profile", price: 500 },
           { name: "Vitamin D", price: 400 },
         ],
+        combos: [],
         createdAt: nowISO(),
         revenue: 54000,
         completedTests: 230,
         pendingTests: 15,
-        customers: 180,
+        customers: [
+          {
+            id: uid("cust"),
+            name: "Ramesh Kumar",
+            email: "ramesh@example.com",
+            phone: "9876543210",
+            tests: [
+              { name: "CBC", price: 300, status: "completed", reportUrl: "", paymentDone: true },
+              { name: "Vitamin D", price: 400, status: "pending", reportUrl: "", paymentDone: false },
+            ],
+          },
+          {
+            id: uid("cust"),
+            name: "Sita Sharma",
+            email: "sita@example.com",
+            phone: "9123456780",
+            tests: [{ name: "Lipid Profile", price: 500, status: "completed", reportUrl: "", paymentDone: true }],
+          },
+        ],
         monthlyStats: [
           { month: "Jan", revenue: 38000, tests: 150 },
           { month: "Feb", revenue: 42000, tests: 160 },
           { month: "Mar", revenue: 49000, tests: 180 },
           { month: "Apr", revenue: 52000, tests: 210 },
           { month: "May", revenue: 54000, tests: 230 },
-        ],
-      },
-      {
-        id: uid("lab"),
-        name: "Sunrise Labs",
-        locationId: "LOC2",
-        address: "Kolkata",
-        email: "contact@sunriselabs.com",
-        phone: "9123456780",
-        tests: [
-          { name: "Thyroid", price: 350 },
-          { name: "Liver Function", price: 450 },
-          { name: "HbA1c", price: 400 },
-        ],
-        createdAt: nowISO(),
-        revenue: 38000,
-        completedTests: 180,
-        pendingTests: 25,
-        customers: 120,
-        monthlyStats: [
-          { month: "Jan", revenue: 31000, tests: 130 },
-          { month: "Feb", revenue: 34000, tests: 140 },
-          { month: "Mar", revenue: 36000, tests: 160 },
-          { month: "Apr", revenue: 37000, tests: 170 },
-          { month: "May", revenue: 38000, tests: 180 },
         ],
       },
     ];
@@ -123,19 +127,21 @@ export default function LabAdminPanel(): JSX.Element {
   const [view, setView] = useState<ViewState>(ViewState.SEARCH);
   const [selectedLab, setSelectedLab] = useState<Lab | null>(null);
   const [showTests, setShowTests] = useState(false);
+  const [customerView, setCustomerView] = useState<{
+    type: "completed" | "pending" | "all";
+    data: Customer[];
+  } | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return labs.filter(
-      (l) =>
-        l.name.toLowerCase().includes(q) &&
-        (locationId === "" || l.locationId === locationId)
+      (l) => l.name.toLowerCase().includes(q) && (locationId === "" || l.locationId === locationId)
     );
   }, [labs, query, locationId]);
 
   useEffect(() => saveToLS(LS_LABS, labs), [labs]);
 
-  // Search Page
+  // 🔍 Search Page
   if (view === ViewState.SEARCH) {
     const locationOptions = Array.from(new Set(labs.map((l) => l.locationId).filter(Boolean)));
     return (
@@ -171,6 +177,7 @@ export default function LabAdminPanel(): JSX.Element {
                   setSelectedLab(lab);
                   setView(ViewState.DASHBOARD);
                   setShowTests(false);
+                  setCustomerView(null);
                 }}
               >
                 <CardContent className="p-4">
@@ -188,7 +195,7 @@ export default function LabAdminPanel(): JSX.Element {
     );
   }
 
-  // Dashboard Page
+  // 📊 Dashboard Page
   if (view === ViewState.DASHBOARD && selectedLab) {
     const COLORS = ["#22c55e", "#f43f5e"];
     const pieData = [
@@ -196,7 +203,7 @@ export default function LabAdminPanel(): JSX.Element {
       { name: "Pending", value: selectedLab.pendingTests || 0 },
     ];
 
-    // Add/Edit Test
+    // Add/Edit Test, Combo, UploadReport functions
     const addTest = () => {
       const name = prompt("Enter new test name:");
       if (!name) return;
@@ -212,9 +219,9 @@ export default function LabAdminPanel(): JSX.Element {
 
     const editTest = (index: number) => {
       const currentTest = selectedLab.tests?.[index];
-      const name = prompt("Edit test name:", currentTest.name);
+      const name = prompt("Edit test name:", currentTest?.name);
       if (!name || !selectedLab.tests) return;
-      const priceStr = prompt("Edit test price:", currentTest.price?.toString() || "0");
+      const priceStr = prompt("Edit test price:", currentTest?.price?.toString() || "0");
       const price = priceStr ? parseFloat(priceStr) : 0;
       const updatedTests = [...selectedLab.tests];
       updatedTests[index] = { name, price };
@@ -223,7 +230,6 @@ export default function LabAdminPanel(): JSX.Element {
       setLabs(labs.map((l) => (l.id === updatedLab.id ? updatedLab : l)));
     };
 
-    // Combo Offer
     const addCombo = () => {
       if (!selectedLab.tests || selectedLab.tests.length < 2) {
         alert("You need at least 2 tests to create a combo.");
@@ -238,7 +244,6 @@ export default function LabAdminPanel(): JSX.Element {
       if (selectedTests.length < 2) return alert("Select at least 2 tests for a combo.");
       const priceStr = prompt("Enter combo price:");
       const price = priceStr ? parseFloat(priceStr) : 0;
-
       const updatedLab = { 
         ...selectedLab, 
         combos: [...(selectedLab.combos || []), { tests: selectedTests, price }] 
@@ -259,12 +264,20 @@ export default function LabAdminPanel(): JSX.Element {
       if (selectedTests.length < 2) return alert("Combo must have at least 2 tests.");
       const priceStr = prompt("Edit combo price:", combo.price.toString());
       const price = priceStr ? parseFloat(priceStr) : combo.price;
-
       const updatedCombos = [...(selectedLab.combos || [])];
       updatedCombos[index] = { tests: selectedTests, price };
       const updatedLab = { ...selectedLab, combos: updatedCombos };
       setSelectedLab(updatedLab);
       setLabs(labs.map((l) => (l.id === updatedLab.id ? updatedLab : l)));
+    };
+
+    const uploadReport = (customerIndex: number, testIndex: number) => {
+      const fileUrl = prompt("Enter PDF report URL:"); 
+      if (!fileUrl) return;
+      const updatedCustomers = [...(selectedLab.customers || [])];
+      updatedCustomers[customerIndex].tests[testIndex].reportUrl = fileUrl;
+      setSelectedLab({ ...selectedLab, customers: updatedCustomers });
+      setLabs(labs.map((l) => (l.id === selectedLab.id ? { ...selectedLab, customers: updatedCustomers } : l)));
     };
 
     return (
@@ -281,13 +294,96 @@ export default function LabAdminPanel(): JSX.Element {
             </Button>
           </header>
 
-          {/* Stats */}
+          {/* Stats with clickable customer details */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard label="Revenue (₹)" value={selectedLab.revenue?.toLocaleString() || "0"} />
-            <StatCard label="Completed Tests" value={selectedLab.completedTests || 0} />
-            <StatCard label="Pending Tests" value={selectedLab.pendingTests || 0} />
-            <StatCard label="Customers" value={selectedLab.customers || 0} />
+            <StatCard
+              label="Revenue (₹)"
+              value={selectedLab.revenue?.toLocaleString() || "0"}
+            />
+            <StatCard
+              label="Completed Tests"
+              value={selectedLab.completedTests || 0}
+              onClick={() => {
+                const completedCustomers = selectedLab.customers?.filter((c) =>
+                  c.tests.some((t) => t.status === "completed")
+                ) || [];
+                setCustomerView({ type: "completed", data: completedCustomers });
+              }}
+            />
+            <StatCard
+              label="Pending Tests"
+              value={selectedLab.pendingTests || 0}
+              onClick={() => {
+                const pendingCustomers = selectedLab.customers?.filter((c) =>
+                  c.tests.some((t) => t.status === "pending")
+                ) || [];
+                setCustomerView({ type: "pending", data: pendingCustomers });
+              }}
+            />
+            <StatCard
+              label="Customers"
+              value={selectedLab.customers?.length || 0}
+              onClick={() => setCustomerView({ type: "all", data: selectedLab.customers || [] })}
+            />
           </div>
+
+          {/* CUSTOMER VIEW INLINE BELOW STATS */}
+          {customerView && (
+            <Card className="bg-slate-800 border border-slate-700 mt-4">
+              <CardContent>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-teal-300 font-semibold text-lg">
+                    {customerView.type === "completed" ? "Completed Tests" :
+                     customerView.type === "pending" ? "Pending Tests" : "All Customers"}
+                  </h2>
+                  <Button onClick={() => setCustomerView(null)} className="bg-red-500 text-white">
+                    Close
+                  </Button>
+                </div>
+
+                {customerView.data.length === 0 && <p className="text-slate-400">No data available.</p>}
+
+                <div className="space-y-3">
+                  {customerView.data.map((cust, ci) => (
+                    <Card key={cust.id} className="bg-slate-700 border border-slate-600">
+                      <CardContent>
+                        <div className="flex justify-between">
+                          <div>
+                            <p className="font-semibold">{cust.name}</p>
+                            <p className="text-sm text-slate-400">{cust.email} | {cust.phone}</p>
+                          </div>
+                        </div>
+                        <div className="mt-2 space-y-1">
+                          {cust.tests.map((t, ti) => {
+                            if (
+                              customerView.type !== "all" &&
+                              t.status !== customerView.type
+                            ) return null;
+                            return (
+                              <div key={ti} className="flex justify-between items-center bg-slate-800 px-3 py-1 rounded">
+                                <div>
+                                  {t.name} - ₹{t.price} | Status: {t.status} | Payment: {t.paymentDone ? "Done" : "Pending"}
+                                </div>
+                                {t.status === "pending" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => uploadReport(ci, ti)}
+                                  >
+                                    Upload PDF
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
@@ -323,6 +419,7 @@ export default function LabAdminPanel(): JSX.Element {
             </Card>
           </div>
 
+          {/* Test Completion Pie */}
           <Card className="bg-slate-800 border border-slate-700">
             <CardContent className="p-4">
               <h2 className="font-semibold text-teal-300 mb-2">Test Completion Overview</h2>
@@ -381,7 +478,7 @@ export default function LabAdminPanel(): JSX.Element {
                   {/* Combo Offers Section */}
                   <div className="mt-4">
                     <h3 className="text-teal-300 font-semibold mb-2">Combo Offers</h3>
-                    {selectedLab.combos?.length > 0 ? (
+                    {selectedLab.combos?.length ? (
                       selectedLab.combos.map((combo, index) => (
                         <div
                           key={index}
@@ -425,9 +522,12 @@ export default function LabAdminPanel(): JSX.Element {
   return null;
 }
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
+function StatCard({ label, value, onClick }: { label: string; value: string | number; onClick?: () => void }) {
   return (
-    <Card className="bg-slate-800 border border-slate-700 text-center py-4">
+    <Card
+      className="bg-slate-800 border border-slate-700 text-center py-4 cursor-pointer hover:bg-slate-700"
+      onClick={onClick}
+    >
       <CardContent>
         <h3 className="text-sm text-slate-400">{label}</h3>
         <p className="text-xl font-bold text-green-400">{value}</p>
