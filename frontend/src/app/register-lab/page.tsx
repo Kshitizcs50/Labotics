@@ -1,8 +1,11 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-//import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type Lab = {
   id: string;
@@ -10,7 +13,7 @@ type Lab = {
   address?: string;
   email?: string;
   phone?: string;
-
+  
   tests?: string[];
   createdAt: string;
 };
