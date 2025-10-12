@@ -9,10 +9,12 @@ import {
   FileText,
   CheckCircle2,
   Clock,
-  MessageSquare,
+  Mail,
   Download,
-  LineChart,
   Brain,
+  MessageSquare,
+  LineChart,
+  Sparkles,
 } from "lucide-react";
 
 interface Report {
@@ -23,6 +25,7 @@ interface Report {
   aiSummary?: string;
   downloadUrl?: string;
   eta?: string;
+  emailNotified?: boolean;
 }
 
 export default function ReportStatusPage() {
@@ -32,16 +35,18 @@ export default function ReportStatusPage() {
   const [loading, setLoading] = useState(false);
   const [chat, setChat] = useState("");
   const [aiResponse, setAiResponse] = useState("");
+  const [emailAlert, setEmailAlert] = useState(false);
 
-  // Mock user reports (simulate fetching from backend)
+  // Mock reports
   useEffect(() => {
     setReports([
       {
         id: "RPT12345",
-        name: "Blood Test - CBC",
+        name: "Complete Blood Count (CBC)",
         uploadedAt: "2025-10-10",
         status: "Completed",
-        aiSummary: "Your CBC report shows healthy levels overall. Slight iron deficiency noted.",
+        aiSummary:
+          "Your CBC report shows healthy blood cell levels overall. Slight iron deficiency noted — consider iron-rich foods.",
         downloadUrl: "#",
         eta: "Delivered",
       },
@@ -52,6 +57,13 @@ export default function ReportStatusPage() {
         status: "Under Review",
         eta: "Expected in 2 hours",
       },
+      {
+        id: "RPT99999",
+        name: "Vitamin D Level Test",
+        uploadedAt: "2025-10-12",
+        status: "Processing",
+        eta: "Expected in 4 hours",
+      },
     ]);
   }, []);
 
@@ -61,7 +73,10 @@ export default function ReportStatusPage() {
       const found = reports.find((r) => r.id === trackingId);
       setSelectedReport(found || null);
       setLoading(false);
-    }, 1200);
+      if (!found) {
+        alert("No report found with that ID!");
+      }
+    }, 1000);
   };
 
   const handleAskAI = () => {
@@ -69,32 +84,38 @@ export default function ReportStatusPage() {
     setAiResponse("...");
     setTimeout(() => {
       setAiResponse(
-        "Based on your recent reports, your overall health looks stable. Maintain hydration and regular exercise!"
+        "Based on your latest results, everything looks fine. Keep up a balanced diet and regular checkups."
       );
     }, 1500);
   };
 
+  const sendEmailUpdate = () => {
+    if (!selectedReport) return;
+    setEmailAlert(true);
+    setTimeout(() => setEmailAlert(false), 4000);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8">
+    <div className="min-h-screen mt-30 bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8">
       <div className="max-w-5xl mx-auto space-y-10">
         {/* HEADER */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
           <h1 className="text-4xl font-extrabold text-teal-400 mb-2">
-            Track Your Medical Report
+            Labotics Report Tracker
           </h1>
-          <p className="text-slate-400">
-            Stay informed with real-time status, AI summaries, and insights.
+          <p className="text-slate-400 text-sm">
+            Track your lab reports, get AI advice, and receive instant updates.
           </p>
         </motion.div>
 
-        {/* TRACKING BAR */}
+        {/* SEARCH BAR */}
         <div className="flex justify-center items-center gap-3">
           <Input
-            placeholder="Enter Report Tracking ID (e.g. RPT12345)"
+            placeholder="Enter Tracking ID (e.g. RPT12345)"
             value={trackingId}
             onChange={(e) => setTrackingId(e.target.value)}
             className="w-80 bg-slate-800 border-slate-700"
@@ -102,7 +123,7 @@ export default function ReportStatusPage() {
           <Button
             onClick={handleTrack}
             disabled={!trackingId || loading}
-            className="bg-teal-500 hover:bg-teal-600 text-white"
+            className="bg-teal-500 hover:bg-teal-600"
           >
             {loading ? <Loader2 className="animate-spin mr-2" /> : null}
             Track
@@ -117,22 +138,72 @@ export default function ReportStatusPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.4 }}
             >
               <Card className="bg-slate-800 border border-slate-700 mt-6">
-                <CardContent className="p-6 space-y-4">
+                <CardContent className="p-6 space-y-5">
+                  {/* Info */}
                   <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold text-teal-300">
-                      {selectedReport.name}
-                    </h2>
+                    <div>
+                      <h2 className="text-2xl font-semibold text-teal-300">
+                        {selectedReport.name}
+                      </h2>
+                      <p className="text-slate-400 text-sm">
+                        Uploaded: {selectedReport.uploadedAt}
+                      </p>
+                      <p className="text-slate-400 text-sm">
+                        ETA: {selectedReport.eta}
+                      </p>
+                    </div>
                     <BadgeByStatus status={selectedReport.status} />
                   </div>
-                  <p className="text-slate-400 text-sm">
-                    Uploaded: {selectedReport.uploadedAt}
-                  </p>
-                  <p className="text-slate-400 text-sm">
-                    ETA: {selectedReport.eta}
-                  </p>
 
+                  {/* PROGRESS TIMELINE */}
+                  <div className="mt-6">
+                    <h3 className="font-semibold text-teal-400 mb-3">
+                      Report Progress
+                    </h3>
+                    <div className="relative">
+                      <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-slate-700"></div>
+                      {["Processing", "Under Review", "Completed"].map(
+                        (step, i) => (
+                          <motion.div
+                            key={step}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: i * 0.2 }}
+                            className="flex items-start gap-4 mb-5 relative"
+                          >
+                            <div
+                              className={`w-6 h-6 rounded-full flex items-center justify-center z-10 ${
+                                getStepColor(selectedReport.status, step)
+                              }`}
+                            >
+                              {selectedReport.status === step ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="w-4 h-4" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-200">
+                                {step}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {step === "Processing"
+                                  ? "Sample being processed in the lab."
+                                  : step === "Under Review"
+                                  ? "Doctor reviewing results."
+                                  : "Report finalized and ready!"}
+                              </p>
+                            </div>
+                          </motion.div>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  {/* AI Summary */}
                   {selectedReport.status === "Completed" && (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -140,18 +211,41 @@ export default function ReportStatusPage() {
                       transition={{ delay: 0.3 }}
                       className="mt-4 p-4 bg-slate-700 rounded-lg"
                     >
-                      <h3 className="font-semibold mb-1 text-teal-300">
-                        AI Health Summary
+                      <h3 className="font-semibold mb-1 text-teal-300 flex items-center gap-2">
+                        <Brain className="w-5 h-5" /> AI Health Summary
                       </h3>
                       <p className="text-slate-300 text-sm">
                         {selectedReport.aiSummary}
                       </p>
                       <Button
                         className="mt-3 bg-blue-500 hover:bg-blue-600"
-                        onClick={() => window.open(selectedReport.downloadUrl, "_blank")}
+                        onClick={() =>
+                          window.open(selectedReport.downloadUrl, "_blank")
+                        }
                       >
                         <Download className="w-4 h-4 mr-2" /> Download Report
                       </Button>
+                    </motion.div>
+                  )}
+
+                  {/* Email Notification */}
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={sendEmailUpdate}
+                      className="border-teal-400 text-teal-400 hover:bg-teal-500 hover:text-white"
+                    >
+                      <Mail className="w-4 h-4 mr-2" /> Send Email Update
+                    </Button>
+                  </div>
+                  {emailAlert && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="bg-green-500/20 border border-green-400 text-green-300 text-sm p-3 rounded-lg text-center"
+                    >
+                      📧 Email notification sent successfully!
                     </motion.div>
                   )}
                 </CardContent>
@@ -160,39 +254,7 @@ export default function ReportStatusPage() {
           )}
         </AnimatePresence>
 
-        {/* REPORT HISTORY */}
-        <div>
-          <h2 className="text-2xl font-semibold text-teal-400 mb-4">
-            Your Report History
-          </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {reports.map((r) => (
-              <motion.div
-                key={r.id}
-                whileHover={{ scale: 1.02 }}
-                className="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow hover:shadow-lg transition"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <p className="font-semibold text-teal-300">{r.name}</p>
-                  <BadgeByStatus status={r.status} />
-                </div>
-                <p className="text-sm text-slate-400 mb-2">ID: {r.id}</p>
-                <p className="text-sm text-slate-400">Uploaded: {r.uploadedAt}</p>
-                {r.status === "Completed" && (
-                  <Button
-                    size="sm"
-                    className="mt-3 bg-blue-500 hover:bg-blue-600"
-                    onClick={() => window.open(r.downloadUrl, "_blank")}
-                  >
-                    <Download className="w-4 h-4 mr-2" /> Download
-                  </Button>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* AI CHAT ADVISOR */}
+        {/* AI Advisor */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -203,7 +265,7 @@ export default function ReportStatusPage() {
             <Brain className="w-6 h-6" /> AI Health Advisor
           </h2>
           <p className="text-slate-400 text-sm mb-3">
-            Ask anything about your reports or health condition.
+            Ask about your reports or general health insights.
           </p>
           <div className="flex gap-3 mb-4">
             <Input
@@ -231,6 +293,8 @@ export default function ReportStatusPage() {
   );
 }
 
+/* --- Utility Components --- */
+
 function BadgeByStatus({ status }: { status: string }) {
   const styles: Record<string, string> = {
     Processing: "bg-yellow-500/20 text-yellow-400",
@@ -238,8 +302,23 @@ function BadgeByStatus({ status }: { status: string }) {
     Completed: "bg-green-500/20 text-green-400",
   };
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${styles[status]}`}>
+    <span
+      className={`px-3 py-1 rounded-full text-xs font-semibold ${styles[status]}`}
+    >
       {status}
     </span>
   );
+}
+
+function getStepColor(current: string, step: string) {
+  const colors: Record<string, string> = {
+    Processing: "bg-yellow-500/30 text-yellow-300",
+    "Under Review": "bg-blue-500/30 text-blue-300",
+    Completed: "bg-green-500/30 text-green-300",
+  };
+  if (current === step) return colors[step];
+  const order = ["Processing", "Under Review", "Completed"];
+  return order.indexOf(current) > order.indexOf(step)
+    ? "bg-green-600 text-green-200"
+    : "bg-slate-600 text-slate-400";
 }
