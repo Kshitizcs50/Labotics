@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, Brain, Loader2, MessageSquare, FileText } from "lucide-react";
+import { Upload, Brain, Loader2, MessageSquare, FileText, Download } from "lucide-react";
 
 export default function ReportAdvisor() {
   const [file, setFile] = useState<File | null>(null);
@@ -44,8 +44,21 @@ export default function ReportAdvisor() {
     setChatInput("");
   };
 
+  // 💾 Download Text/Advice
+  const downloadText = () => {
+    const textToDownload =
+      aiResponse || reportText || "No AI advice or report content available.";
+    const blob = new Blob([textToDownload], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "AI_Report_Advice.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-black text-white flex flex-col items-center py-16 px-6">
+    <div className="min-h-screen mt-10 bg-gradient-to-br from-slate-900 via-indigo-900 to-black text-white flex flex-col items-center py-16 px-6">
       <motion.h1
         initial={{ y: -40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -91,8 +104,8 @@ export default function ReportAdvisor() {
             />
           </div>
 
-          {/* Analyze Button */}
-          <motion.div className="flex justify-center">
+          {/* Analyze + Download Buttons */}
+          <motion.div className="flex justify-center gap-4">
             <Button
               onClick={analyzeReport}
               className="bg-gradient-to-r from-teal-500 to-blue-500 text-white px-6 py-3 font-semibold rounded-full hover:scale-105 transition-transform flex items-center gap-2"
@@ -100,6 +113,13 @@ export default function ReportAdvisor() {
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Brain size={20} />}
               {loading ? "Analyzing..." : "Analyze Report"}
+            </Button>
+
+            <Button
+              onClick={downloadText}
+              className="bg-gradient-to-r from-pink-500 to-red-500 text-white px-6 py-3 font-semibold rounded-full hover:scale-105 transition-transform flex items-center gap-2"
+            >
+              <Download size={18} /> Download
             </Button>
           </motion.div>
 
