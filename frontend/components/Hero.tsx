@@ -38,7 +38,7 @@ export default function Hero() {
         </p>
 
         <Link
-          href="/get-started"
+          href="/tool1"
           className="inline-block px-6 py-3 text-lg font-medium rounded-md bg-blue-600 hover:bg-blue-700 transition"
         >
           Get Started →
