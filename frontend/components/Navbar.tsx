@@ -37,7 +37,7 @@ export default function Navbar() {
                   href="/tool1"
                   className="block px-4 py-2 hover:bg-gray-800 rounded-t-xl"
                 >
-                  Tool 1
+                  Find Labs
                 </Link>
               </li>
               <li>
@@ -45,7 +45,7 @@ export default function Navbar() {
                   href="/tool2"
                   className="block px-4 py-2 hover:bg-gray-800 rounded-b-xl"
                 >
-                  Tool 2
+                  Analyze your Report with Ai
                 </Link>
               </li>
             </ul>
