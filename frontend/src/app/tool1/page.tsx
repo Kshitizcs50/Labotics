@@ -58,7 +58,7 @@ export default function LabsPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.3 }}
-            onClick={() => router.push(`/labs/${lab.id}`)}
+            onClick={() => router.push(`/Labs/${lab.id}`)}
             className="bg-gray-900/70 backdrop-blur-md border border-gray-800 p-6 rounded-2xl shadow-lg hover:border-green-400/40 cursor-pointer"
           >
             <img src={lab.image} className="rounded-xl h-48 w-full object-cover mb-4" />
