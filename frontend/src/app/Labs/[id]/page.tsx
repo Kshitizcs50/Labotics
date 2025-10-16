@@ -121,7 +121,7 @@ const LABS: Record<string, Lab> = {
    Component: page for /labs/[id]
    =========================== */
 
-export default function LabDetailPage(): JSX.Element {
+export default function LabDetailPage() {
   const params = useParams() as { id?: string };
   const router = useRouter();
   const id = params?.id ?? "1"; // default fallback
