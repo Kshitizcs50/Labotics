@@ -437,7 +437,7 @@ export default function LabDetailPage() {
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-semibold text-emerald-300">Book a Test</h3>
                   <button onClick={() => setShowBook(false)} className="text-slate-400 hover:text-red-400">
-                    <h1>xa</h1>
+                    <h1>xaa</h1>
                   </button>
                 </div>
 
