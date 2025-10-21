@@ -467,7 +467,7 @@ export default function LabDetailPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm text-slate-300">Your nam</label>
+                    <label className="text-sm text-slate-300">Your na</label>
                     <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="w-full bg-slate-800 border border-slate-700 rounded-md p-2 text-slate-200" />
                   </div>
 
