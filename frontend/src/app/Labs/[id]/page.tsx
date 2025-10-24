@@ -472,7 +472,7 @@ export default function LabDetailPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm text-slate-300">Phone number</label>
+                    <label className="text-sm text-slate-300">Phone</label>
                     <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 9xxxxxxxxx" className="w-full bg-slate-800 border border-slate-700 rounded-md p-2 text-slate-200" />
                   </div>
 
