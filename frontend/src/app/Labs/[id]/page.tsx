@@ -462,7 +462,7 @@ export default function LabDetailPage() {
                   </select>
 
                   <div>
-                    <label className="text-sm text-slate-300">Preferred Date</label>
+                    <label className="text-sm text-slate-300">Preferred Dat</label>
                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-md p-2 text-slate-200" />
                   </div>
 
