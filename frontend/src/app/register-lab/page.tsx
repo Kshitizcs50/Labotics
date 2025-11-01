@@ -120,7 +120,7 @@ const seedIfEmpty = () => {
 };
 seedIfEmpty();
 
-export default function LabAdminPanel(): JSX.Element {
+export default function LabAdminPanel() {
   const [labs, setLabs] = useState<Lab[]>(() => loadFromLS(LS_LABS, []));
   const [query, setQuery] = useState("");
   const [locationId, setLocationId] = useState("");
